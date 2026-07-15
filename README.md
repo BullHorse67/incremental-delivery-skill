@@ -1,4 +1,4 @@
-# Incremental Delivery · 增量交付
+# Incremental Delivery Skill · 增量交付技能
 
 [中文](#cn) | [English](#en)
 
