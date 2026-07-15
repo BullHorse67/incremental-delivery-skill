@@ -1,115 +1,137 @@
-# Incremental Delivery Skill
+# Incremental Delivery · 增量交付
 
-[中文说明](#chinese) | [English](#english)
+[中文](#cn) | [English](#en)
 
 ---
 
-## <a name="chinese"></a>增量交付技能
+## <a name="cn"></a>中文
 
 ### 简介
 
-为已有系统的小规模功能开发提供结构化交付流程。生成一份机器可执行、人类可阅读的开发文档，按阶段逐步推进。
+Vibe Coding 迭代几轮之后，你自己也忘了上次改了什么，AI 更是每次从零开始。`incremental-delivery` 在编码前生成一份 `.incr/` 文档，记录任务清单和验收标准，让人和 AI 共享同一份事实源——既能追溯历史决策，也能在动手前对齐需求。
 
-### 核心规则
+### 优点
 
-| 规则 | 说明 |
-|------|------|
-| **R1. MVP 先行** | 每次达成最小可验收标准，不引入不必要的抽象和配置 |
-| **R2. 先读后写** | 动手前先读懂同类代码风格，CLAUDE.md 和 README 必读 |
-| **R3. 阶段渐进** | 按任务列表逐步推进，每完成一个立即打勾 |
-| **R4. 范围收敛** | 只验证本次新增，不做全系统回归 |
-| **R5. 验收即执行** | 验收点必须在真实运行系统中校验，禁止仅靠代码审查通过 |
+- **人和 AI 共享上下文** — 每次任务形成独立文档，`[[wiki-link]]` 串联。新对话的 AI 沿链即可还原完整背景，不用重复解释
+- **需求对齐前移** — 写代码前先明确功能点和验收标准。偏差在规划阶段就被发现，而非代码写完之后
+- **AI 有据可依** — 文档中的约束和验收点让 AI 知道"项目不能怎么写"和"写到什么程度算通过"，减少自由发挥
+- **验收不走形式** — 验收条件在真实运行系统中逐项校验，不靠代码审查勾 `[x]`
 
-### 工作流程
+### 示例
+
+以"新增导出功能"为例，`.incr/` 文档的大致框架：
 
 ```
-步骤0：检查上下文 → 步骤1：理解需求 → 步骤2：提取关键约束
-→ 步骤3：规划阶段 → [确认门] → 步骤4：逐阶段开发
-→ 步骤5：逐功能点验收（真实系统） → 步骤6：汇总与归档
+# 数据导出功能
+
+> 状态：进行中    日期：2026-07-16
+
+## 需求
+
+### 功能点
+- [ ] F1：后端导出 API，支持 CSV / Excel 两种格式
+- [ ] F2：前端列表页增加"导出"按钮，调用 API 下载文件
+
+### 阶段规划
+阶段 1：后端 API（F1） — 2 个任务 / 1 个文件
+阶段 2：前端按钮（F2） — 2 个任务 / 2 个文件
+
+### 影响范围
+直接改动：`api/export.py`、`views/ListPage.vue`
+
+## 验收
+
+### F1：后端导出 API
+- [ ] GET /api/export?format=csv 返回 CSV 文件
+- [ ] GET /api/export?format=xlsx 返回 Excel 文件
+- [ ] 数据量 > 10000 行时仍可在 30s 内完成
+
+### F2：前端导出按钮
+- [ ] 列表页出现"导出"按钮，点击弹出格式选择
+- [ ] 下载文件内容与列表筛选结果一致
+
+## 约束
+- 导出走流式响应，不把全量数据加载到内存（偏差检测：现有列表接口已按此模式）
+- API 命名遵循 `/api/xxx` 前缀（交叉对照：F1 → 由现有路由规则覆盖）
 ```
 
-### 安装
+执行流程：**检查上下文 → 理解需求 → 提取约束 → 规划阶段 → [用户确认] → 逐阶段开发 → 逐项验收 → 归档**。
+
+### 安装与使用
 
 ```bash
-# 克隆到 Claude Code skills 目录
 git clone git@github.com:BullHorse67/incremental-delivery-skill.git \
   ~/.claude/skills/incremental-delivery
 ```
 
-### 使用
-
-在 Claude Code 对话中输入：
-
-```
-/incremental-delivery
-```
-
-或直接描述你的增量开发需求，AI 会自动调用此技能。
-
-### 文档命名规范
-
-```
-YYYY-MM-NNN-name.md
-```
-- `YYYY-MM`: 年月
-- `NNN`: 当月序号（001 开始）
-- `name`: 英文 kebab-case 功能简称
+在 Claude Code 中输入 `/incremental-delivery`。文档生成在项目 `.incr/` 目录，命名 `YYYY-MM-NNN-name.md`。
 
 ---
 
-## <a name="english"></a>English
+## <a name="en"></a>English
 
 ### Overview
 
-A structured delivery process for small-scale feature development on existing systems. Produces a machine-executable, human-readable development document, progressing phase by phase.
+After a few rounds of vibe coding, you can't remember what you changed — and AI starts every session from zero. `incremental-delivery` produces a `.incr/` document before coding begins, capturing task lists and acceptance criteria. Human and AI share a single source of truth: traceable decision history and aligned requirements, before a line of code is written.
 
-### Core Rules
+### Benefits
 
-| Rule | Description |
-|------|-------------|
-| **R1. MVP First** | Reach minimum acceptable standard each time; no unnecessary abstractions |
-| **R2. Read Before Write** | Understand existing code patterns before writing; CLAUDE.md and README required |
-| **R3. Phased Progression** | Follow task list sequentially; check off each completed task immediately |
-| **R4. Scope Discipline** | Only verify what was added; declare impact scope explicitly |
-| **R5. Verify by Execution** | Validate in running system (API, UI, logs); code review alone is FORBIDDEN |
+- **Shared context for human and AI** — Each task gets its own document, chained via `[[wiki-link]]`. A fresh AI session follows the chain to reconstruct full context — no repeated explanations
+- **Requirements aligned early** — Define feature points and acceptance criteria before coding. Misalignment is caught during planning, not after implementation
+- **AI knows the guardrails** — Constraints and acceptance criteria tell AI "what not to do in this project" and "what done looks like," reducing improvisation
+- **Verification that counts** — Acceptance criteria are validated in a running system. Code-review-only check-off doesn't qualify
 
-### Workflow
+### Example
+
+For "add export feature", a `.incr/` document looks roughly like:
 
 ```
-Step 0: Check Context → Step 1: Understand Requirements → Step 2: Extract Constraints
-→ Step 3: Plan Phases → [Confirmation Gate] → Step 4: Develop by Phase
-→ Step 5: Verify by Feature (real system) → Step 6: Summary & Archive
+# Data Export Feature
+
+> Status: In Progress    Date: 2026-07-16
+
+## Requirements
+
+### Feature Points
+- [ ] F1: Backend export API, supporting CSV and Excel formats
+- [ ] F2: Frontend "Export" button on the list page
+
+### Phase Plan
+Phase 1: Backend API (F1) — 2 tasks / 1 file
+Phase 2: Frontend button (F2) — 2 tasks / 2 files
+
+### Impact Scope
+Direct: api/export.py, views/ListPage.vue
+
+## Acceptance
+
+### F1: Backend Export API
+- [ ] GET /api/export?format=csv returns a CSV file
+- [ ] GET /api/export?format=xlsx returns an Excel file
+- [ ] >10,000 rows completes within 30s
+
+### F2: Frontend Export Button
+- [ ] "Export" button appears on list page with format selection
+- [ ] Downloaded content matches the current list filter
+
+## Constraints
+- Use streaming response — never load full dataset into memory
+  (deviation detection: existing list endpoints follow this pattern)
+- API naming follows /api/xxx prefix
+  (cross-reference: F1 → covered by existing route convention)
 ```
 
-### Installation
+Execution flow: **Check Context → Understand Requirements → Extract Constraints → Plan Phases → [User Confirms] → Develop by Phase → Verify by Feature → Archive**.
+
+### Install & Use
 
 ```bash
-# Clone into Claude Code skills directory
 git clone git@github.com:BullHorse67/incremental-delivery-skill.git \
   ~/.claude/skills/incremental-delivery
 ```
 
-### Usage
-
-In Claude Code, type:
-
-```
-/incremental-delivery
-```
-
-Or describe your incremental development needs — the AI will invoke this skill automatically.
-
-### Document Naming Convention
-
-```
-YYYY-MM-NNN-name.md
-```
-- `YYYY-MM`: Year-Month
-- `NNN`: Month-sequential number (starting at 001)
-- `name`: English kebab-case feature abbreviation
+Type `/incremental-delivery` in Claude Code. Documents land in `.incr/` at project root, named `YYYY-MM-NNN-name.md`.
 
 ---
-
-## License
 
 MIT
